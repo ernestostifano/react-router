@@ -67,6 +67,7 @@ export type {
 export {
   AbortedDeferredError,
   Await,
+  DataRoutes,
   MemoryRouter,
   Navigate,
   NavigationType,

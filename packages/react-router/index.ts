@@ -61,6 +61,7 @@ import {
   createRoutesFromChildren,
   renderMatches,
   Await,
+  DataRoutes,
   MemoryRouter,
   Navigate,
   Outlet,
@@ -168,6 +169,7 @@ export type {
 export {
   AbortedDeferredError,
   Await,
+  DataRoutes,
   MemoryRouter,
   Navigate,
   NavigationType,

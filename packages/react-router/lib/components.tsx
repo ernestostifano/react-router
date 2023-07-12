@@ -23,12 +23,12 @@ import {
 } from "@remix-run/router";
 
 import type {
-  DataRouteObject,
   IndexRouteObject,
   RouteMatch,
   RouteObject,
   Navigator,
   NonIndexRouteObject,
+  DataRouterContextObject,
 } from "./context";
 import {
   LocationContext,
@@ -57,6 +57,7 @@ export interface RouterProviderProps {
   fallbackElement?: React.ReactNode;
   router: RemixRouter;
   future?: FutureConfig;
+  children?: React.ReactNode;
 }
 
 /**
@@ -90,6 +91,7 @@ export function RouterProvider({
   fallbackElement,
   router,
   future,
+  children,
 }: RouterProviderProps): React.ReactElement {
   // Need to use a layout effect here so we are subscribed early enough to
   // pick up on any render-driven redirects/navigations (useEffect/<Navigate>)
@@ -152,11 +154,7 @@ export function RouterProvider({
             navigationType={state.historyAction}
             navigator={navigator}
           >
-            {state.initialized ? (
-              <DataRoutes routes={router.routes} state={state} />
-            ) : (
-              fallbackElement
-            )}
+            {children || <DataRoutes fallbackElement={fallbackElement} />}
           </Router>
         </DataRouterStateContext.Provider>
       </DataRouterContext.Provider>
@@ -165,14 +163,33 @@ export function RouterProvider({
   );
 }
 
-function DataRoutes({
-  routes,
+function RoutesImpl({
   state,
+  dataRouterContext,
 }: {
-  routes: DataRouteObject[];
   state: RouterState;
+  dataRouterContext: DataRouterContextObject;
 }): React.ReactElement | null {
-  return useRoutesImpl(routes, undefined, state);
+  return useRoutesImpl(dataRouterContext.router.routes, undefined, state);
+}
+
+export function DataRoutes({
+  fallbackElement = null,
+}: {
+  fallbackElement?: React.ReactNode | null;
+}): React.ReactElement | null {
+  const dataRouterContext = React.useContext(DataRouterContext);
+  const state = React.useContext(DataRouterStateContext);
+
+  if (!dataRouterContext || !state) {
+    throw new Error("Cannot use DataRoutes outside router context");
+  }
+
+  if (state.initialized) {
+    return <RoutesImpl state={state} dataRouterContext={dataRouterContext} />;
+  } else {
+    return <>{fallbackElement}</>;
+  }
 }
 
 export interface MemoryRouterProps {
